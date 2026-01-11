@@ -1,6 +1,8 @@
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { create } from 'zustand';
-import { auth } from './authConfig';
+// import { auth } from './authConfig';
+import { auth } from './FirebaseConfig'
+// const auth = getAuth();
 
 type User = {
 	id: string;
@@ -20,7 +22,6 @@ interface AuthState {
 	// checkAuthStatus: () => void;
 	setError: (error: string | null) => void;
   }
-
 
 export const useAuthStore = create<AuthState>((set => ({
 	isAuthenticated: false,
@@ -133,7 +134,9 @@ export const useAuthStore = create<AuthState>((set => ({
 
 	logout: async () => {
 		try {
+			console.log('Attempting to log out user...');
 			await signOut(auth);
+			console.log('User successfully logged out.');
 			set({
 				user: null,
 				isAuthenticated: false,

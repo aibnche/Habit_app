@@ -2,7 +2,8 @@ import { Stack, useRouter } from "expo-router";
 import { useEffect } from "react";
 // import { auth } from '../utils/FirebaseConfig'; // Use the same Firebase config as the auth store
 
-import { auth } from '../utils/authConfig';
+// import { auth } from '../utils/authConfig';
+import { auth } from '../utils/FirebaseConfig';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
