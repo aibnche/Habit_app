@@ -14,7 +14,7 @@ const AuthScreen = () => {
   const router = useRouter();
   const theme = useTheme();
 
-  const { login, signup, loading } = useAuthStore();
+  const { login, signup, loading ,error : erro_r, setError : setErro_r } = useAuthStore();
 
   // Function to test Firebase connection
   const testFirebaseConnection = async () => {
@@ -44,15 +44,14 @@ const AuthScreen = () => {
     setError(null);
     try {
 			if (isSignUp) {
-				console.log("Authenticating user...111");
         await signup(email, password);
         router.replace("/(tabs)");
       } else {
-				console.log("Authenticating user...2222");
         await login(email, password);
         router.replace("/(tabs)");
       }
-    } catch (err) {
+    } catch (err:any) {
+			router.replace("/auth");
       setError((err as Error).message);
     }
   };
@@ -80,6 +79,7 @@ const AuthScreen = () => {
           placeholder="email@domain.com"
           mode="outlined"
           value={email}
+					onChange={() => setErro_r("")}
           onChangeText={setEmail}
         />
         <TextInput
@@ -87,10 +87,12 @@ const AuthScreen = () => {
           autoCapitalize="none"
           secureTextEntry
           mode="outlined"
+					onChange={() => setErro_r("")}
           value={password}
           onChangeText={setPass}
         />
         {error && <Text style={{ color: theme.colors.error }}>{error}</Text>}
+        {erro_r && <Text style={{ color: theme.colors.error }}>{erro_r}</Text>}
         <Button mode="contained" onPress={handleAuth}>
           {isSignUp ? "Sign Up" : "Sign In"}
         </Button>

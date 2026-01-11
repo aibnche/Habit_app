@@ -1,5 +1,5 @@
 import { Text, View, StyleSheet } from "react-native";
-import { router } from "expo-router";
+import { router, Link } from "expo-router";
 import { useAuthStore } from "../../utils/useStore";
 
 export default function Index() {
@@ -12,6 +12,8 @@ export default function Index() {
       {user && user.email && (
         <Text style={styles.emailText}>Logged in as: {user.email}</Text>
       )}
+      <Link href="/auth">Go to Login</Link>
+
     </View>
   );
 }

@@ -1,8 +1,6 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, getAuth } from "firebase/auth";
 import { create } from 'zustand';
-// import { auth } from './authConfig';
 import { auth } from './FirebaseConfig'
-// const auth = getAuth();
 
 type User = {
 	id: string;
@@ -19,6 +17,7 @@ interface AuthState {
 	login: (email: string, password: string) => Promise<void>;
 	signup: (email: string, password: string) => Promise<void>;
 	logout: () => void;
+	getUser: () => Promise<User | null>;
 	// checkAuthStatus: () => void;
 	setError: (error: string | null) => void;
   }
@@ -30,16 +29,26 @@ export const useAuthStore = create<AuthState>((set => ({
 	loading: false,
 	error: null,
 
+
+	getUser: async () => {
+		const firebaseUser = getAuth().currentUser; // Get current user directly from Firebase Auth
+		if (firebaseUser) {
+			return {
+				id: firebaseUser.uid,
+				name: firebaseUser.displayName || 'Anonymous',
+				email: firebaseUser.email || ''
+			};
+		}
+		return null;
+	},
+	
 	setError: (error: string | null) => {
 		set({error});
 	},
 	login: async (email : string, password: string) => {
 		set({loading: true, error: null});
 		try {
-			console.log('Attempting login with email:', email);
-			console.log('About to call signInWithEmailAndPassword');
 			const userCredential = await signInWithEmailAndPassword(auth, email, password);
-			console.log('Successfully called signInWithEmailAndPassword, got userCredential:', userCredential);
 			if (userCredential.user) {
 				console.log('User credential user object:', userCredential.user);
 				set({
@@ -56,9 +65,6 @@ export const useAuthStore = create<AuthState>((set => ({
 				set({error: 'Login failed - no user object returned', loading: false});
 			}
 		} catch (error: any) {
-			console.log('Login error occurred:', error);
-			console.log('Error code:', error?.code);
-			console.log('Error message:', error?.message);
 			let errorMessage = 'An error occurred during login';
 			if (error?.code) {
 				switch (error.code) {
@@ -85,10 +91,7 @@ export const useAuthStore = create<AuthState>((set => ({
 	signup: async (email : string, password: string) => {
 		set({loading: true, error: null});
 		try {
-			console.log('Attempting signup with email:', email);
-			console.log('About to call createUserWithEmailAndPassword');
 			const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-			console.log('Successfully called createUserWithEmailAndPassword, got userCredential:', userCredential);
 
 			if (userCredential.user) {
 				console.log('User credential user object:', userCredential.user);
@@ -106,9 +109,7 @@ export const useAuthStore = create<AuthState>((set => ({
 				set({error: 'Signup Failed - no user object returned', loading: false});
 			}
 		} catch (error: any) {
-			console.log('Signup error occurred:', error);
-			console.log('Error code:', error?.code);
-			console.log('Error message:', error?.message);
+			set({loading: false , isAuthenticated: false, user: null});
 			let errorMessage = 'An error occurred during signup';
 			if (error?.code) {
 				switch (error.code) {
@@ -126,7 +127,10 @@ export const useAuthStore = create<AuthState>((set => ({
 						break;
 					default:
 						errorMessage = error?.message || errorMessage;
-				}
+						
+					}
+				set({error: errorMessage, loading: false});
+				throw Error(errorMessage);
 			}
 			set({error: errorMessage, loading: false});
 		}
@@ -134,9 +138,7 @@ export const useAuthStore = create<AuthState>((set => ({
 
 	logout: async () => {
 		try {
-			console.log('Attempting to log out user...');
 			await signOut(auth);
-			console.log('User successfully logged out.');
 			set({
 				user: null,
 				isAuthenticated: false,
