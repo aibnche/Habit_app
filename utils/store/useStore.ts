@@ -1,6 +1,6 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, getAuth } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { create } from 'zustand';
-import { auth } from './FirebaseConfig'
+import { auth } from '../FirebaseConfig';
 
 type User = {
 	id: string;

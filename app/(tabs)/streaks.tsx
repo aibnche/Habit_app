@@ -1,11 +1,10 @@
-import React from 'react'
-import { useAuthStore } from '../../utils/useStore'
-import { Button, Text } from 'react-native-paper';
-import { StyleSheet, View } from 'react-native';
 import { useRouter } from "expo-router";
+import { StyleSheet, View } from "react-native";
+import { Button, Text } from "react-native-paper";
+import { useAuthStore } from "../../utils/store/useStore";
 
-const LoginTab = () => {
-  const {logout} = useAuthStore();
+const StreaksTab = () => {
+  const { logout } = useAuthStore();
 
   const router = useRouter();
 
@@ -16,15 +15,17 @@ const LoginTab = () => {
     } catch (error) {
       console.log("Logout error:", error);
     }
-  }
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Welcome to the Login Tab</Text>
-      <Button mode="contained" onPress={handleLogout}>Logout</Button>
+      <Button mode="contained" onPress={handleLogout}>
+        Logout
+      </Button>
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -36,7 +37,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 18,
     marginBottom: 20,
-  }
+  },
 });
 
-export default LoginTab
+export default StreaksTab;

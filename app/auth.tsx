@@ -2,8 +2,8 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from "react-native";
 import { Button, Text, TextInput, useTheme } from "react-native-paper";
-import { useAuthStore } from "../utils/useStore";
-import { auth } from '../utils/FirebaseConfig'; // Import the Firebase auth instance
+import { auth } from "../utils/FirebaseConfig"; // Import the Firebase auth instance
+import { useAuthStore } from "../utils/store/useStore";
 
 const AuthScreen = () => {
   const [isSignUp, setIsSignUp] = useState<boolean>(true);
@@ -14,19 +14,28 @@ const AuthScreen = () => {
   const router = useRouter();
   const theme = useTheme();
 
-  const { login, signup, loading ,error : erro_r, setError : setErro_r } = useAuthStore();
+  const {
+    login,
+    signup,
+    loading,
+    error: erro_r,
+    setError: setErro_r,
+  } = useAuthStore();
 
   // Function to test Firebase connection
   const testFirebaseConnection = async () => {
     try {
-      console.log('Testing Firebase connection...');
-      console.log('Auth state:', auth.currentUser ? 'Connected' : 'Not connected');
-      console.log('Auth object:', auth);
-      console.log('Current user:', auth.currentUser);
-      alert('Firebase connection test: Auth object exists and is accessible');
+      console.log("Testing Firebase connection...");
+      console.log(
+        "Auth state:",
+        auth.currentUser ? "Connected" : "Not connected"
+      );
+      console.log("Auth object:", auth);
+      console.log("Current user:", auth.currentUser);
+      alert("Firebase connection test: Auth object exists and is accessible");
     } catch (err) {
-      console.error('Firebase connection test failed:', err);
-      alert('Firebase connection test failed: ' + (err as Error).message);
+      console.error("Firebase connection test failed:", err);
+      alert("Firebase connection test failed: " + (err as Error).message);
     }
   };
 
@@ -43,15 +52,15 @@ const AuthScreen = () => {
 
     setError(null);
     try {
-			if (isSignUp) {
+      if (isSignUp) {
         await signup(email, password);
         router.replace("/(tabs)");
       } else {
         await login(email, password);
         router.replace("/(tabs)");
       }
-    } catch (err:any) {
-			router.replace("/auth");
+    } catch (err: any) {
+      router.replace("/auth");
       setError((err as Error).message);
     }
   };
@@ -79,7 +88,7 @@ const AuthScreen = () => {
           placeholder="email@domain.com"
           mode="outlined"
           value={email}
-					onChange={() => setErro_r("")}
+          onChange={() => setErro_r("")}
           onChangeText={setEmail}
         />
         <TextInput
@@ -87,7 +96,7 @@ const AuthScreen = () => {
           autoCapitalize="none"
           secureTextEntry
           mode="outlined"
-					onChange={() => setErro_r("")}
+          onChange={() => setErro_r("")}
           value={password}
           onChangeText={setPass}
         />
@@ -139,7 +148,7 @@ const styles = StyleSheet.create({
   },
   testButton: {
     marginTop: 10,
-  }
+  },
 });
 
 export default AuthScreen;
