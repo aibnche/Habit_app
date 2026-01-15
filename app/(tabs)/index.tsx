@@ -1,51 +1,98 @@
 import { Link } from "expo-router";
-import { StyleSheet, Text, View, Button } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Button, Text } from "react-native-paper";
 import { useAuthStore } from "../../utils/store/useStore";
 import { getHabits } from "../../utils/services/habits.service";
 import { useEffect, useState } from "react";
 import { Habit } from "../../utils/types/types";
-import { logout } from "@/utils/store/useStore";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Surface } from "react-native-paper";
 
 export default function Index() {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const [habits, setHabits] =  useState<Habit[]>([]);
 
   // const habits: Habit[] = [];  
 
-  const fetchHabits = async () => {
-    if (!user) return;
-    try {
-      const data = await getHabits(user!.id as string);
-      // habits.push(...data as Habit[]);
-      setHabits(data as Habit[]);
-      console.log("Fetched habits:", habits);
-    } catch (error) {
-      console.error("Error fetching habits:", error);
-    }
-  }
+  // const fetchHabits = async () => {
+  //   if (!user) return;
+  //   try {
+  //     const unsubscribe = await getHabits(user!.id as string, (data) => {
+  //       setHabits(data as Habit[]);
+  //     });
+  //     // habits.push(...data as Habit[]);
+  //     // setHabits(data as Habit[]);
+  //     // console.log("Fetched habits:", habits);
+  //   } catch (error) {
+  //     console.error("Error fetching habits:", error);
+  //   }
+  //   return ()=> unsubscribe();
+  // }
 
   useEffect(() => {
-    fetchHabits();
-  }, [user]);
+    if (!user) return;
 
+    let unsubscribeFn: (() => void) | null = null;
+
+    const setupListener = async () => {
+      try {
+        const unsubscribe = await getHabits(user.id, (data) => {
+          setHabits(data as Habit[]);
+          console.log("Realtime habits update:", data);
+        });
+        unsubscribeFn = unsubscribe;
+      } catch (error) {
+        console.error("Error setting up habits listener:", error);
+      }
+    };
+
+    setupListener();
+
+    return () => {
+      if (unsubscribeFn) {
+        unsubscribeFn(); // cleanup listener
+      }
+    };
+  }, [user]);
+  
   return (
-    <View style={styles.view}>
-      <View>
-        <Text variant="headlineSmall">Today's Habits</Text>
-        <Button mode="text" onPress={()=> logout()} icon={"logout"}></Button>
+    <View style={styles.container}>
+      
+      <View style={styles.header}>
+        <Text variant="headlineSmall" style={styles.title}>Today's Habits</Text>
+        <Button mode="text" onPress={()=> logout()} icon={"logout"}>Logout</Button>
       </View>
 
+      <ScrollView>
       {
         habits.length > 0 ? (
           habits.map((habit) => (
-            <View key={habit.userId}>
-              <Text>{habit.title}</Text>
-            </View>
+            <Surface style={styles.card} elevation={0}>
+              <View key={habit.userId} style={styles.cardContent}>
+                <Text style={styles.cardTitle}>{habit.title}</Text>
+                <Text style={styles.cardDescription}>{habit.description}</Text>
+                
+                <View style={styles.streakBadge}>
+                  <View style={styles.streakCon}>
+                    <MaterialCommunityIcons name="fire" size={18} color={"#ff9800"}/> {" "}
+                    <Text style={styles.streakText}>{habit.streak_count} days</Text>
+                  </View>
+
+                  <View style={styles.frequencyBadge}>
+                    <Text style={styles.frequencyText}>{habit.frequency.charAt(0) + "" + habit.frequency.slice(1)}</Text>
+                  </View>
+                </View>
+
+              </View>
+            </Surface>
           ))
         ) : (
-          <Text>No habits found.</Text> 
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>No habits found.</Text>
+          </View>
         )
       }
+      </ScrollView>
       {/* <Text>Welcome to your Financial Management App!</Text>
       <Text>You are logged in and viewing the home screen.</Text>
       {user && user.email ? (
@@ -60,15 +107,112 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  view: {
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: "#f5f5f5",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  title: {
+    fontWeight: "bold",
+  },
+
+  card: {
+    marginBottom: 18,
+    borderRadius: 18,
+    backgroundColor: "#f7f2fa",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+
+  cardCompleted: {
+    opacity: 0.6,
+  },
+  cardContent: {
+    padding: 20,
+  },
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 4,
+    color: "#22223b",
+  },
+  cardDescription: {
+    fontSize: 15,
+    marginBottom: 16,
+    color: "#6c6c80",
+  },
+  cardFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  streakBadge: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  streakCon: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff3e0",
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  streakText: {
+    marginLeft: 6,
+    color: "#ff9800",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+  frequencyBadge: {
+    backgroundColor: "#ede7f6",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  frequencyText: {
+    color: "#7c4dff",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+  emptyState: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  emailText: {
-    marginTop: 20,
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#1875e2",
+  emptyStateText: {
+    color: "#666666",
   },
+  
+  
+  // swipeActionLeft: {
+  //   justifyContent: "center",
+  //   alignItems: "flex-start",
+  //   flex: 1,
+  //   backgroundColor: "#e53935",
+  //   borderRadius: 18,
+  //   marginBottom: 18,
+  //   marginTop: 2,
+  //   paddingLeft: 16,
+  // },
+  // swipeActionRight: {
+  //   justifyContent: "center",
+  //   alignItems: "flex-end",
+  //   flex: 1,
+  //   backgroundColor: "#4caf50",
+  //   borderRadius: 18,
+  //   marginBottom: 18,
+  //   marginTop: 2,
+  //   paddingRight: 16,
+  // },
 });

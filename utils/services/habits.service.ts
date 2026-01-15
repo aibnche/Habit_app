@@ -9,6 +9,7 @@ import {
   doc,
   query,
   where,
+  onSnapshot
 } from 'firebase/firestore';
 
 export interface Habit {
@@ -43,16 +44,17 @@ export const addHabit = async (habit: Habit, userId: string) => {
   }
 };
 
-export const getHabits = async (userId: string) => {
+// onSnapshot it help to listen real-time updates
+export const getHabits = async (userId: string, callback: (habits: Habit[]) => void) => {
   const q = query(collection(db, 'habits'), where('userId', '==', userId));
-  const querySnapshot = await getDocs(q);
-  const habits: Habit[] = [];
-  querySnapshot.forEach((doc) => {
-
-  habits.push({ id: doc.id, ...(doc.data() as Habit) });
+  return onSnapshot(q, (querySnapshot) => {
+    const habits: Habit[] = [];
+    querySnapshot.forEach((doc) => {
+      habits.push({ id: doc.id, ...(doc.data() as Habit) });
+    });
+    callback(habits);
   });
-  return habits;
-};
+}
 
 export const updateHabit = async (habitId: string, updatedData: Partial<Habit>) => {
   const habitRef = doc(db, 'habits', habitId);
