@@ -13,3 +13,14 @@ export type State = {
 export type Action =
   | { type: "SET_ALL"; payload: State }
   | { type: "SET_FIELD"; field: keyof State; value: string };
+
+
+export interface Habit {
+	userId: string;
+	title: string;
+	description: string;
+	frequency: string;
+	streak_count: number;
+	last_completed: string;
+	createdAt: string;
+}

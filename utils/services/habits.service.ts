@@ -16,7 +16,7 @@ export interface Habit {
   title: string;
   description: string;
   frequency: string;
-  createdAt?: Date;
+  createdAt?: string;
 }
 
 export const addHabit = async (habit: Habit, userId: string) => {
@@ -26,7 +26,9 @@ export const addHabit = async (habit: Habit, userId: string) => {
   const habitWithUser = {
     ...habit,
     userId,
-    createdAt: new Date(),
+    streak_count: 0,
+    last_completed: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
   };
 
   console.log("Final habit object:", habitWithUser);
