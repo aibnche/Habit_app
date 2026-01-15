@@ -16,6 +16,7 @@ export type Action =
 
 
 export interface Habit {
+	id: string;
 	userId: string;
 	title: string;
 	description: string;

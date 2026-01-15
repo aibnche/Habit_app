@@ -62,12 +62,12 @@ export default function Index() {
       // Update the habit with incremented streak count and completion status
       const updatedHabit = {
         ...habit,
-        streak_count: (habit.streak_count || 0) + 1,
+        streak_count: (habit.streak_count || 0) + 1, // how many times user completed the habit
         completed: true,
         last_completed: new Date().toISOString()
       };
 
-      await updateHabit(habit.userId!, updatedHabit);
+      await updateHabit(habit.id!, updatedHabit);
       console.log(`Habit "${habit.title}" marked as completed`);
     } catch (error) {
       console.error("Error completing habit:", error);
@@ -77,7 +77,7 @@ export default function Index() {
   // Function to handle deleting a habit
   const handleDeleteHabit = async (habit: Habit) => {
     try {
-      await deleteHabit(habit.userId!);
+      await deleteHabit(habit.id!);
       console.log(`Habit "${habit.title}" deleted`);
     } catch (error) {
       console.error("Error deleting habit:", error);
@@ -97,7 +97,7 @@ export default function Index() {
         habits.length > 0 ? (
           habits.map((habit) => (
             <Swipeable
-              key={habit.userId}
+              key={habit.id}
               renderLeftActions={(progress, dragX) => LeftAction(progress, dragX, () => handleCompleteHabit(habit))}
               renderRightActions={(progress, dragX) => RightAction(progress, dragX, () => handleDeleteHabit(habit))}
               friction={2}

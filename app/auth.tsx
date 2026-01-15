@@ -6,7 +6,7 @@ import { auth } from "../utils/FirebaseConfig"; // Import the Firebase auth inst
 import { useAuthStore } from "../utils/store/useStore";
 
 const AuthScreen = () => {
-  const [isSignUp, setIsSignUp] = useState<boolean>(true);
+  const [isSignUp, setIsSignUp] = useState<boolean>(false);
   const [email, setEmail] = useState<string>("");
   const [password, setPass] = useState<string>("");
   const [error, setError] = useState<string | null>(null);

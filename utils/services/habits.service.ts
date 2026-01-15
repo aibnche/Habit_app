@@ -62,6 +62,7 @@ export const deleteHabit = async (habitId: string) => {
   await deleteDoc(habitRef);
 };
 
+
 // export const getHabitById = async (habitId: string) => {
 //   const habitRef = doc(db, 'habits', habitId);
 //   const habitSnap = await getDocs(habitRef);
