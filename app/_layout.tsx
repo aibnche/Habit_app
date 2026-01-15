@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { auth } from '../utils/FirebaseConfig';
 import { useAuthStore } from "../utils/store/useStore";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { PaperProvider } from "react-native-paper";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -55,10 +58,18 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
 export default function RootLayout() {
   return (
-    <AuthGuard>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
-    </AuthGuard>
+    <GestureHandlerRootView style={{flex: 1}}>
+      
+      <AuthGuard>
+        <PaperProvider>
+          <SafeAreaProvider>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            </Stack>
+          </SafeAreaProvider>
+        </PaperProvider>
+      </AuthGuard>
+
+    </GestureHandlerRootView>
   );
 }

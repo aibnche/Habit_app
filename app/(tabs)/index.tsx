@@ -1,12 +1,13 @@
 import { Link } from "expo-router";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
 import { Button, Text } from "react-native-paper";
 import { useAuthStore } from "../../utils/store/useStore";
-import { getHabits } from "../../utils/services/habits.service";
+import { getHabits, updateHabit, deleteHabit } from "../../utils/services/habits.service";
 import { useEffect, useState } from "react";
 import { Habit } from "../../utils/types/types";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Surface } from "react-native-paper";
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 
 export default function Index() {
   const { user, logout } = useAuthStore();
@@ -54,6 +55,34 @@ export default function Index() {
       }
     };
   }, [user]);
+
+  // Function to handle completing a habit
+  const handleCompleteHabit = async (habit: Habit) => {
+    try {
+      // Update the habit with incremented streak count and completion status
+      const updatedHabit = {
+        ...habit,
+        streak_count: (habit.streak_count || 0) + 1,
+        completed: true,
+        last_completed: new Date().toISOString()
+      };
+
+      await updateHabit(habit.userId!, updatedHabit);
+      console.log(`Habit "${habit.title}" marked as completed`);
+    } catch (error) {
+      console.error("Error completing habit:", error);
+    }
+  };
+
+  // Function to handle deleting a habit
+  const handleDeleteHabit = async (habit: Habit) => {
+    try {
+      await deleteHabit(habit.userId!);
+      console.log(`Habit "${habit.title}" deleted`);
+    } catch (error) {
+      console.error("Error deleting habit:", error);
+    }
+  };
   
   return (
     <View style={styles.container}>
@@ -63,28 +92,37 @@ export default function Index() {
         <Button mode="text" onPress={()=> logout()} icon={"logout"}>Logout</Button>
       </View>
 
-      <ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
       {
         habits.length > 0 ? (
           habits.map((habit) => (
-            <Surface style={styles.card} elevation={0}>
-              <View key={habit.userId} style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{habit.title}</Text>
-                <Text style={styles.cardDescription}>{habit.description}</Text>
-                
-                <View style={styles.streakBadge}>
-                  <View style={styles.streakCon}>
-                    <MaterialCommunityIcons name="fire" size={18} color={"#ff9800"}/> {" "}
-                    <Text style={styles.streakText}>{habit.streak_count} days</Text>
+            <Swipeable
+              key={habit.userId}
+              renderLeftActions={(progress, dragX) => LeftAction(progress, dragX, () => handleCompleteHabit(habit))}
+              renderRightActions={(progress, dragX) => RightAction(progress, dragX, () => handleDeleteHabit(habit))}
+              friction={2}
+              leftThreshold={40}
+              rightThreshold={40}
+            >
+              <Surface style={[styles.card, habit.completed ? styles.cardCompleted : {}]} elevation={0}>
+                <View style={styles.cardContent}>
+                  <Text style={styles.cardTitle}>{habit.title}</Text>
+                  <Text style={styles.cardDescription}>{habit.description}</Text>
+
+                  <View style={styles.streakBadge}>
+                    <View style={styles.streakCon}>
+                      <MaterialCommunityIcons name="fire" size={18} color={"#ff9800"}/> {" "}
+                      <Text style={styles.streakText}>{habit.streak_count} days</Text>
+                    </View>
+
+                    <View style={styles.frequencyBadge}>
+                      <Text style={styles.frequencyText}>{habit.frequency.charAt(0) + "" + habit.frequency.slice(1)}</Text>
+                    </View>
                   </View>
 
-                  <View style={styles.frequencyBadge}>
-                    <Text style={styles.frequencyText}>{habit.frequency.charAt(0) + "" + habit.frequency.slice(1)}</Text>
-                  </View>
                 </View>
-
-              </View>
-            </Surface>
+              </Surface>
+            </Swipeable>
           ))
         ) : (
           <View style={styles.emptyState}>
@@ -193,26 +231,44 @@ const styles = StyleSheet.create({
   emptyStateText: {
     color: "#666666",
   },
-  
-  
-  // swipeActionLeft: {
-  //   justifyContent: "center",
-  //   alignItems: "flex-start",
-  //   flex: 1,
-  //   backgroundColor: "#e53935",
-  //   borderRadius: 18,
-  //   marginBottom: 18,
-  //   marginTop: 2,
-  //   paddingLeft: 16,
-  // },
-  // swipeActionRight: {
-  //   justifyContent: "center",
-  //   alignItems: "flex-end",
-  //   flex: 1,
-  //   backgroundColor: "#4caf50",
-  //   borderRadius: 18,
-  //   marginBottom: 18,
-  //   marginTop: 2,
-  //   paddingRight: 16,
-  // },
+
+  // Swipe action styles
+  swipeActionLeft: {
+    justifyContent: "center",
+    alignItems: "flex-start",
+    flex: 1,
+    backgroundColor: "#43a047",
+    borderRadius: 18,
+    marginBottom: 18,
+    marginTop: 2,
+    paddingLeft: 16,
+  },
+  swipeActionRight: {
+    justifyContent: "center",
+    alignItems: "flex-end",
+    flex: 1,
+    backgroundColor: "#e53935",
+    borderRadius: 18,
+    marginBottom: 18,
+    marginTop: 2,
+    paddingRight: 16,
+  },
 });
+
+// Right action for deleting habit
+const RightAction = (progress, dragX, onDelete) => {
+  return (
+    <TouchableOpacity style={styles.swipeActionRight} onPress={onDelete}>
+      <MaterialCommunityIcons name="trash-can" size={24} color="#ffffff" />
+    </TouchableOpacity>
+  );
+};
+
+// Left action for completing habit
+const LeftAction = (progress, dragX, onComplete) => {
+  return (
+    <TouchableOpacity style={styles.swipeActionLeft} onPress={onComplete}>
+      <MaterialCommunityIcons name="check" size={24} color="#ffffff" />
+    </TouchableOpacity>
+  );
+};

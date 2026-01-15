@@ -23,4 +23,5 @@ export interface Habit {
 	streak_count: number;
 	last_completed: string;
 	createdAt: string;
+	completed?: boolean;
 }

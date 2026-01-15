@@ -1,4 +1,5 @@
 import {db} from '../FirebaseConfig';
+import { Habit as HabitType } from '../types/types';
 
 import {
   collection,
@@ -12,15 +13,10 @@ import {
   onSnapshot
 } from 'firebase/firestore';
 
-export interface Habit {
-  id?: string;
-  title: string;
-  description: string;
-  frequency: string;
-  createdAt?: string;
-}
+type Habit = HabitType & { id?: string };
 
-export const addHabit = async (habit: Habit, userId: string) => {
+// Omit it is used to exclude certain fields from the Habit type when adding a new habit
+export const addHabit = async (habit: Omit<Habit, 'userId' | 'streak_count' | 'last_completed' | 'createdAt'>, userId: string) => {
   console.log("Adding habit for user:", userId);
   console.log("Habit data:", habit);
 
@@ -45,18 +41,18 @@ export const addHabit = async (habit: Habit, userId: string) => {
 };
 
 // onSnapshot it help to listen real-time updates
-export const getHabits = async (userId: string, callback: (habits: Habit[]) => void) => {
+export const getHabits = async (userId: string, callback: (habits: (HabitType & { id: string })[]) => void) => {
   const q = query(collection(db, 'habits'), where('userId', '==', userId));
   return onSnapshot(q, (querySnapshot) => {
-    const habits: Habit[] = [];
+    const habits: (HabitType & { id: string })[] = [];
     querySnapshot.forEach((doc) => {
-      habits.push({ id: doc.id, ...(doc.data() as Habit) });
+      habits.push({ id: doc.id, ...(doc.data() as HabitType) });
     });
     callback(habits);
   });
 }
 
-export const updateHabit = async (habitId: string, updatedData: Partial<Habit>) => {
+export const updateHabit = async (habitId: string, updatedData: Partial<HabitType>) => {
   const habitRef = doc(db, 'habits', habitId);
   await updateDoc(habitRef, updatedData);
 };
